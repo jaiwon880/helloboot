@@ -4,27 +4,18 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
 
 @Configuration // 구성 정보
+@ComponentScan // Component가 붙은 클래스를 찾아서 Bean으로 등록
 public class HellobootApplication {
-    // Spring Container가 Bean Object를 만들기 위해 쓰이는 것이라고 알려줌
-    // @Bean
-    @Bean
-    public HelloController helloController(HelloService helloService) {
-        return new HelloController(helloService);
-    }
-
-    @Bean
-    // 인터페이스 타입으로 return
-    public HelloService helloService() {
-        return new SimpleHelloService();
-    }
 
     public static void main(String[] args) {
         // 스프링 컨테이너
