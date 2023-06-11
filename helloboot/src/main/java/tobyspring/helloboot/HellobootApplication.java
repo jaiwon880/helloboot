@@ -23,24 +23,26 @@ public class HellobootApplication {
     public static void main(String[] args) {
         // 스프링 컨테이너
         // 웹 환경에서 쓰도록 WebApplicationContext 타입을 사용
-        GenericWebApplicationContext applicationContext= new GenericWebApplicationContext();
+        GenericWebApplicationContext applicationContext = new GenericWebApplicationContext() {
+            @Override
+            protected void onRefresh() {
+                super.onRefresh();
+
+                ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+                // 웹서버 생성
+                // 람다식 변환
+                WebServer webServer = serverFactory.getWebServer(servletContext -> {
+                    servletContext.addServlet("dispatcherServlet", new DispatcherServlet(this)).addMapping("/*");
+
+                });
+                // Tomcat 서블릿 컨테이너 동작
+                webServer.start();
+            }
+        };
         // Bean 등록
         applicationContext.registerBean(HelloController.class);
         applicationContext.registerBean(SimpleHelloService.class);
         applicationContext.refresh(); // Bean Object를 만듦.
 
-        // 톰캣없이 서블릿 구현하기
-        // 빈 서블릿 컨테이너 구현
-        ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
-        // 웹서버 생성
-        // 람다식 변환
-        WebServer webServer = serverFactory.getWebServer(servletContext -> {
-            servletContext.addServlet("dispatcherServlet",
-                    new DispatcherServlet(applicationContext)
-            ).addMapping("/*");
-
-        });
-        // Tomcat 서블릿 컨테이너 동작
-        webServer.start();
     }
 }
