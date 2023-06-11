@@ -9,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -20,7 +22,8 @@ import java.io.IOException;
 public class HellobootApplication {
     public static void main(String[] args) {
         // 스프링 컨테이너
-        GenericApplicationContext applicationContext= new GenericApplicationContext();
+        // 웹 환경에서 쓰도록 WebApplicationContext 타입을 사용
+        GenericWebApplicationContext applicationContext= new GenericWebApplicationContext();
         // Bean 등록
         applicationContext.registerBean(HelloController.class);
         applicationContext.registerBean(SimpleHelloService.class);
@@ -32,29 +35,9 @@ public class HellobootApplication {
         // 웹서버 생성
         // 람다식 변환
         WebServer webServer = serverFactory.getWebServer(servletContext -> {
-            servletContext.addServlet("frontcontroller", new HttpServlet() {
-                // service 메소드: 웹프로그래밍 -> 웹 요청을 받아 응답하는 것
-                @Override
-                protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-                    // 인증, 보안, 다국어, 공통 기능
-                    // Mapping: 요청을 가지고 함. Method, Path, Header, Body
-                    // /hello로 들어왔는데 POST 방식 등이 들어오면 처리할 수 없다
-                    if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
-                        String name = req.getParameter("name");
-
-                        HelloController helloController = applicationContext.getBean(HelloController.class);
-                        String ret = helloController.hello(name);
-
-                        // resp.setStatus(HttpStatus.OK.value()); // default 200 값
-                        resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
-                        // Body
-                        resp.getWriter().println(ret);
-                    } else {
-                        resp.setStatus(HttpStatus.NOT_FOUND.value());
-                    }
-                }
-                //모든 요청을 서블릿이 컨트롤러를 하겠다. -> frontcontroller
-            }).addMapping("/*");
+            servletContext.addServlet("dispatcherServlet",
+                    new DispatcherServlet(applicationContext)
+            ).addMapping("/*");
 
         });
         // Tomcat 서블릿 컨테이너 동작
