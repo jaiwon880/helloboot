@@ -23,6 +23,7 @@ public class HellobootApplication {
         GenericApplicationContext applicationContext= new GenericApplicationContext();
         // Bean 등록
         applicationContext.registerBean(HelloController.class);
+        applicationContext.registerBean(SimpleHelloService.class);
         applicationContext.refresh(); // Bean Object를 만듦.
 
         // 톰캣없이 서블릿 구현하기
