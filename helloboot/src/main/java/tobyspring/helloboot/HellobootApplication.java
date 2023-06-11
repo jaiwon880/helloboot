@@ -5,17 +5,23 @@ import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
 
 @Configuration // 구성 정보
 @ComponentScan // Component가 붙은 클래스를 찾아서 Bean으로 등록
 public class HellobootApplication {
+    @Bean
+    public ServletWebServerFactory servletWebServerFactory(){
+        return new TomcatServletWebServerFactory();
+    }
+
+    @Bean
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
 
     public static void main(String[] args) {
         // 스프링 컨테이너
@@ -25,11 +31,13 @@ public class HellobootApplication {
             protected void onRefresh() {
                 super.onRefresh();
 
-                ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
-                // 웹서버 생성
-                // 람다식 변환
+                ServletWebServerFactory serverFactory = this.getBean(ServletWebServerFactory.class);
+                DispatcherServlet dispatcherServlet = this.getBean(DispatcherServlet.class);
+                dispatcherServlet.setApplicationContext(this);
+
                 WebServer webServer = serverFactory.getWebServer(servletContext -> {
-                    servletContext.addServlet("dispatcherServlet", new DispatcherServlet(this)).addMapping("/*");
+                    servletContext.addServlet("dispatcherServlet", dispatcherServlet)
+                            .addMapping("/*");
 
                 });
                 // Tomcat 서블릿 컨테이너 동작
